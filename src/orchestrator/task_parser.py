@@ -185,20 +185,20 @@ class TaskParser:
 
 Ответь в формате JSON:
 ```json
-{
+{{
   "workflow_type": "feature|bugfix|refactor|docs|test",
   "summary": "краткое описание плана",
   "tasks": [
-    {
+    {{
       "id": "task_1",
       "title": "...",
       "description": "...",
       "type": "...",
       "priority": 2,
       "depends_on": []
-    }
+    }}
   ]
-}
+}}
 ```
 
 Важно:
@@ -222,21 +222,21 @@ class TaskParser:
 
 Ответь в JSON:
 ```json
-{
+{{
   "workflow_type": "feature",
   "complexity": "medium",
   "estimated_tasks": 4,
   "needs_architecture": true,
   "needs_testing": true,
   "primary_language": "python"
-}
+}}
 ```'''
 
     def __init__(
         self,
         ollama_url: str = "http://localhost:11434",
-        fast_model: str = "qwen3:8b",
-        smart_model: str = "deepseek-r1:32b"
+        fast_model: str = "codestral:latest",
+        smart_model: str = "qwen3-coder:30b"
     ):
         self.ollama_url = ollama_url
         self.fast_model = fast_model

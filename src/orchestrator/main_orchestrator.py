@@ -28,14 +28,14 @@ class OrchestratorConfig:
     max_parallel_tasks: int = 2
     max_retries: int = 3
 
-    # Модели
-    fast_model: str = "qwen3:8b"
-    smart_model: str = "deepseek-r1:32b"
+    # Модели (доступные в системе)
+    fast_model: str = "codestral:latest"
+    smart_model: str = "qwen3-coder:30b"
 
     # Quality Gates
     enable_review: bool = True
     enable_testing: bool = True
-    require_human_approval: bool = True
+    require_human_approval: bool = False  # Автономный режим
 
     # RAG
     enable_rag: bool = True

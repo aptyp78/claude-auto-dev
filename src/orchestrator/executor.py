@@ -451,6 +451,54 @@ class ExecutionScheduler:
         self.results = results
         return results
 
+    def execute_graph_sync(
+        self,
+        graph: TaskGraph,
+        project_context: str = "",
+        rag_retriever: Optional[Callable[[str], str]] = None
+    ) -> Dict[str, ExecutionResult]:
+        """
+        Полностью синхронная версия выполнения графа задач
+        Выполняет задачи последовательно с учётом зависимостей
+        """
+        completed = set()
+        results = {}
+
+        while len(completed) < len(graph.tasks):
+            # Найти задачи, готовые к выполнению
+            ready_tasks = [
+                task for task in graph.tasks.values()
+                if task.id not in completed
+                and all(dep in completed for dep in task.depends_on)
+            ]
+
+            if not ready_tasks:
+                # Deadlock или все выполнены
+                remaining = set(graph.tasks.keys()) - completed
+                if remaining:
+                    print(f"⚠️ Deadlock: {remaining}")
+                break
+
+            print(f"\n📦 Executing {len(ready_tasks)} task(s):")
+            for task in ready_tasks:
+                print(f"   - {task.id}: {task.title}")
+
+            # Последовательное выполнение
+            for task in ready_tasks:
+                rag_context = ""
+                if rag_retriever:
+                    rag_context = rag_retriever(task.description)
+
+                result = self.execute_task(task, project_context, rag_context)
+                results[task.id] = result
+                completed.add(task.id)
+
+                status = "✅" if result.success else "❌"
+                print(f"   {status} {task.id}: {result.execution_time_seconds:.1f}s")
+
+        self.results = results
+        return results
+
     def execute_graph(
         self,
         graph: TaskGraph,
@@ -458,16 +506,9 @@ class ExecutionScheduler:
         rag_retriever: Optional[Callable[[str], str]] = None
     ) -> Dict[str, ExecutionResult]:
         """
-        Синхронная обёртка для execute_graph_async
+        Синхронная версия выполнения графа задач
         """
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            return loop.run_until_complete(
-                self.execute_graph_async(graph, project_context, rag_retriever)
-            )
-        finally:
-            loop.close()
+        return self.execute_graph_sync(graph, project_context, rag_retriever)
 
     def get_summary(self) -> dict:
         """Получить сводку выполнения"""
