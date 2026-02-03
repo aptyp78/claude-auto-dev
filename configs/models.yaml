@@ -1,0 +1,246 @@
+# Local Swarm Model Configuration
+# For Apple M4 Max 128GB RAM
+
+system:
+  total_ram_gb: 128
+  reserved_for_os_gb: 20
+  reserved_for_services_gb: 10
+  available_for_models_gb: 98
+
+# Model Pool Strategy
+strategy: "multi-model"  # single-large | multi-model | hot-swap
+
+# Primary Models (always loaded)
+primary:
+  coder:
+    name: "qwen3-coder:30b"
+    provider: "ollama"
+    ram_gb: 18
+    context_window: 32768
+    roles:
+      - implementation
+      - refactoring
+      - testing
+    temperature: 0.2
+
+  reasoning:
+    name: "deepseek-r1:32b"
+    provider: "ollama"
+    ram_gb: 19
+    context_window: 32768
+    roles:
+      - architecture
+      - code_review
+      - debugging
+      - planning
+    temperature: 0.3
+
+# Secondary Models (loaded on demand)
+secondary:
+  agentic:
+    name: "devstral:24b"
+    provider: "ollama"
+    ram_gb: 15
+    context_window: 32768
+    roles:
+      - swe_tasks
+      - multi_step_operations
+    temperature: 0.2
+
+  fim:
+    name: "codestral:22b"
+    provider: "ollama"
+    ram_gb: 13
+    context_window: 32768
+    roles:
+      - autocomplete
+      - fill_in_middle
+      - snippets
+    temperature: 0.1
+
+  general:
+    name: "llama3.3:latest"
+    provider: "ollama"
+    ram_gb: 42
+    context_window: 131072
+    roles:
+      - general_purpose
+      - long_context_tasks
+    temperature: 0.3
+
+  heavy:
+    name: "llama3:70b"
+    provider: "ollama"
+    ram_gb: 39
+    context_window: 8192
+    roles:
+      - complex_reasoning
+      - fallback
+    temperature: 0.3
+
+# Fast Models (always available)
+fast:
+  quick:
+    name: "qwen3:8b"
+    provider: "ollama"
+    ram_gb: 5
+    context_window: 32768
+    roles:
+      - classification
+      - summarization
+      - quick_tasks
+    temperature: 0.3
+
+# Embedding Models
+embeddings:
+  primary:
+    name: "nomic-embed-text"
+    provider: "ollama"
+    dimensions: 768
+    ram_mb: 300
+    roles:
+      - code_search
+      - semantic_similarity
+
+  code_specific:
+    name: "qwen3-embedding:8b"
+    provider: "ollama"
+    dimensions: 4096
+    ram_gb: 5
+    roles:
+      - code_embeddings
+      - detailed_search
+
+  fast:
+    name: "mxbai-embed-large"
+    provider: "ollama"
+    dimensions: 1024
+    ram_mb: 700
+    roles:
+      - quick_search
+      - routing
+
+# Cloud Models (via Ollama API when needed)
+cloud:
+  super_heavy:
+    name: "qwen3-coder:480b-cloud"
+    provider: "ollama-cloud"
+    roles:
+      - repository_scale_architecture
+      - extremely_complex_tasks
+
+  deepseek_v3:
+    name: "deepseek-v3.1:671b-cloud"
+    provider: "ollama-cloud"
+    roles:
+      - frontier_tasks
+      - when_local_fails
+
+# Agent-to-Model Mapping
+agent_models:
+  architect:
+    primary: "deepseek-r1:32b"
+    fallback: "llama3:70b"
+
+  coder:
+    primary: "qwen3-coder:30b"
+    fallback: "deepseek-coder:33b-instruct"
+
+  reviewer:
+    primary: "deepseek-r1:32b"
+    fallback: "codellama:34b"
+
+  tester:
+    primary: "qwen3-coder:30b"
+    fallback: "llama3.3:latest"
+
+  docs:
+    primary: "qwen3:8b"
+    fallback: "qwen3-coder:30b"
+
+  devops:
+    primary: "qwen3-coder:30b"
+    fallback: "deepseek-r1:32b"
+
+# Task-to-Model Routing
+task_routing:
+  architecture:
+    model: "deepseek-r1:32b"
+    reason: "Deep reasoning for system design"
+
+  implementation:
+    model: "qwen3-coder:30b"
+    reason: "Optimized for code generation"
+
+  refactoring:
+    model: "qwen3-coder:30b"
+    reason: "Good pattern recognition"
+
+  review:
+    model: "deepseek-r1:32b"
+    reason: "Catches bugs through reasoning"
+
+  testing:
+    model: "qwen3-coder:30b"
+    reason: "Fast test generation"
+
+  documentation:
+    model: "qwen3:8b"
+    reason: "Fast and sufficient"
+
+  quick_fix:
+    model: "codestral:22b"
+    reason: "FIM optimized"
+
+  agentic_swe:
+    model: "devstral:24b"
+    reason: "Trained for SWE-bench"
+
+# RAM Budget Profiles
+profiles:
+  balanced:
+    description: "2 models loaded, fast switching"
+    loaded:
+      - "qwen3-coder:30b"    # 18 GB
+      - "deepseek-r1:32b"    # 19 GB
+      - "nomic-embed-text"   # 0.3 GB
+    total_ram: 37.3
+    buffer: 60.7
+
+  maximum_power:
+    description: "Best quality, 3 large models"
+    loaded:
+      - "qwen3-coder:30b"    # 18 GB
+      - "deepseek-r1:32b"    # 19 GB
+      - "llama3:70b"         # 39 GB
+      - "nomic-embed-text"   # 0.3 GB
+    total_ram: 76.3
+    buffer: 21.7
+
+  fast_iteration:
+    description: "Quick responses, smaller models"
+    loaded:
+      - "qwen3-coder:30b"    # 18 GB
+      - "qwen3:8b"           # 5 GB
+      - "codestral:22b"      # 13 GB
+      - "nomic-embed-text"   # 0.3 GB
+    total_ram: 36.3
+    buffer: 61.7
+
+# Performance Expectations (M4 Max)
+performance:
+  qwen3-coder-30b:
+    generation_speed: "40-60 t/s"
+    first_token: "1-2 sec"
+
+  deepseek-r1-32b:
+    generation_speed: "30-45 t/s"
+    first_token: "2-3 sec"
+
+  llama3-70b:
+    generation_speed: "15-25 t/s"
+    first_token: "3-5 sec"
+
+  embedding:
+    throughput: "~300 embed/sec"
+    latency: "~10ms per query"
