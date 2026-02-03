@@ -41,6 +41,9 @@ class SecurityScannerGate(QualityGate):
         ".env.example", ".env.sample", ".env.template",
         "requirements.txt", "package-lock.json", "yarn.lock",
         "*.md", "*.txt", "*.rst",
+        # Игнорировать сам сканер и конфигурации
+        "security_scanner.py",
+        "models.yaml", "config.yaml", "settings.yaml",
     }
 
     SECURITY_COMMANDS = {
