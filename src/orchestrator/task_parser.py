@@ -236,7 +236,7 @@ class TaskParser:
         self,
         ollama_url: str = "http://localhost:11434",
         fast_model: str = "codestral:latest",
-        smart_model: str = "qwen3-coder:30b"
+        smart_model: str = "devstral:latest"
     ):
         self.ollama_url = ollama_url
         self.fast_model = fast_model

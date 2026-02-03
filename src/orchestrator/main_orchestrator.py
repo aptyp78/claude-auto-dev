@@ -30,7 +30,7 @@ class OrchestratorConfig:
 
     # Модели (доступные в системе)
     fast_model: str = "codestral:latest"
-    smart_model: str = "qwen3-coder:30b"
+    smart_model: str = "devstral:latest"  # Быстрее чем 30B
 
     # Quality Gates
     enable_review: bool = True
